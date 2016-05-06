@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+	<script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+<head>
+	<title>Battleships</title>
+</head>
+<body>
+	<label for="sel1">Select Letter:</label>
+	<select class="form-control" id="sel1">
+		<option>A</option>
+		<option>B</option>
+		<option>C</option>
+		<option>D</option>
+		<option>E</option>
+		<option>F</option>
+		<option>G</option>
+	</select>
+	<label for="sel2">Select Number:</label>
+	<select class="form-control" id="sel2">
+		<option>1</option>
+		<option>2</option>
+		<option>3</option>
+		<option>4</option>
+		<option>5</option>
+		<option>6</option>
+		<option>7</option>
+		<option>8</option>
+	</select>	
+	<button id="fire" type="button" class="btn btn-primary center-block">Fire!</button>
+
+	<script>
+	  var socket = io.connect('http://localhost');
+	  socket.on('news', function (data) {
+	    console.log(data);
+	    socket.emit('my other event', { my: 'data' });
+	  });
+	  socket.on('yourTurn',function (data) {
+	  	console.log(data.message);
+	  	socket.emit('my turn', { my: 'move'})
+	  	$('#fire').prop('disabled', function(i, v) { return !v; });
+	  })
+	  $('#fire').on('click',function() {
+	  	socket.emit('shot', {letter:$('#sel1').val(), number: $('#sel2').val()});
+	  });	
+	</script>
+</body>
+</html>
+
