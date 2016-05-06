@@ -7,6 +7,11 @@ server.listen(80);
 
 var game = function () {
 	this.turn = true;
+	this.carrier = 5;
+	this.battleship = 4;
+	this.cruiser = 3;
+	this.submarine = 3;
+	this.destroyer = 2;
 	this.grid = {
 		horizontal:[1,2,3,4,5,6,7,8],
 		vertical: ["a","b","c","d","e","f","g"]
@@ -49,6 +54,13 @@ var game = function () {
 			}
 		}
 	}
+	this.setBoat = function () {
+
+	}
+	this.receiveShot = function(data) {
+		console.log(data);
+	}
+
 }
 
 var players = [];
@@ -60,12 +72,17 @@ io.on('connection', function (socket) {
 		var currentPlayers = players.splice(0,2);
 		battleships = new game;
 		battleships.init(currentPlayers);
+		// socket.on('shot', function(data) {
+		// 	console.log('go...')
+		// 	battleships.receiveShot(data);
+		// });		
 	} else { 
 		// console.log('not enough players...');
 	}
-	socket.on('shot', function(data) {
-		console.log(data)
-	});
+	// socket.on('shot', function(data) {
+	// 	console.log(battleships);
+	// 	console.log(data)
+	// });
 	// socket.emit('news', { hello: 'world' });
 	// socket.on('my other event', function (data) {
 	// });
