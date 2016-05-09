@@ -19,30 +19,12 @@ var game = function () {
 			currPlayer.id = playersArr.pop();
 			currPlayer.grid = this.grid;
 			currPlayer.picks = positionPicks.pop();
+			currPlayer.hits = [];
 			currPlayer.turn = !this.turn;
 			this.turn = !this.turn;
 		}
 		this.setBoats();
-		// this.startGame();
 	}
-	// this.startGame = function(positionPicks) {
-	// 	for (var key in this.players){
-	// 		var currPlayer = this.players[key];
-
-	// 		// if (currPlayer.turn) {
-	// 			// console.log('player ' + currPlayer.id + ' initiating send...')
-	// 			// this.sendClientMsg(currPlayer.id,'message');
-	// 		// }
-	// 	}
-	// }
-	// this.sendClientMsg = function(currPlayerId,message) {
-	// 	for (var i = 0; i < clients.length; i++) {
-	// 		if (currPlayerId == clients[i].client.id) {
-	// 			console.log('player ' + currPlayerId + ' sending client message...')
-	// 			clients[i].emit('yourTurn', { message: message });
-	// 		}
-	// 	}
-	// }
 	this.setBoats = function () {
 		for (var key in this.players){
 			var currPlayer = this.players[key];
@@ -55,7 +37,6 @@ var game = function () {
 					boatPosition = this.splitIncrease(boatPosition,isVertical);
 				}
 			}
-			// console.log(currPlayer.grid)
 		}	
 	}
 	// shotCoords should be in the following format: 
@@ -66,10 +47,18 @@ var game = function () {
 	this.receiveShot = function(playerID,shotCoords) {
 		for (var key in this.players){
 			var currPlayer = this.players[key];
-			if ( !currPlayer.turn ){
-
+			if ( !currPlayer.turn && currPlayer.id == playerID ){
+				if (currPlayer.grid[shotCoords]) {
+					if (currPlayer.grid[shotCoords]!== "hit" && currPlayer.grid[shotCoords] !== "miss") {
+						currPlayer.hits.push(currPlayer.grid[shotCoords]);
+						currPlayer.grid[shotCoords] = "hit";
+					}
+				} else {
+					currPlayer.grid[shotCoords] = "miss";
+				}
 			}	
-		}			
+			this.countHits(currPlayer);
+		}		
 	}
 	this.compareCoords = function(boatCoords) {
 		var theHeadNum = boatCoords.head.replace( /^\D+/g, '');
@@ -80,7 +69,6 @@ var game = function () {
 		// var splitCoords = coords.split("");
 		var splitCoords = coords.match(/[a-zA-Z]+|[0-9]+/g)
 		return isVert ? splitCoords[0] + this.nextChar(splitCoords[1]) : this.nextChar(splitCoords[0]) + splitCoords[1];
-		// return this.nextChar(splitCoords[0]) + this.nextChar(splitCoords[1]);
 	}
 	this.combineHVGrid = function() {
 		var hz = this.horizontal;	
@@ -94,24 +82,45 @@ var game = function () {
 	this.nextChar = function(c) {
 	    return String.fromCharCode(c.charCodeAt(0) + 1);
 	}
+	this.countHits = function(currPlayer) {
+		var playerCarriers = this.countArr(currPlayer.hits,"carrier");
+		var playerBattleships = this.countArr(currPlayer.hits,"battleship");
+		var playerCruisers = this.countArr(currPlayer.hits,"cruiser");
+		var playerSubmarines = this.countArr(currPlayer.hits,"submarine");
+		var playerDestroyers = this.countArr(currPlayer.hits,"destroyer");
+		if ( playerCarriers == this.carrier && playerBattleships == this.battleship && playerCruisers == this.cruiser && playerSubmarines == this.submarine && playerDestroyers == this.destroyer ) {
+			return this.gameOver(currPlayer);
+		}
+	}
+	this.countArr = function(dataset, search) {
+		var count = 0;
+		for(var i = 0; i< dataset.length; i++) {
+			dataset[i] == search ? count++ : count+=0;
+		}
+		return count;
+	}
+	this.gameOver = function(currPlayer) {
+		console.log("This game is over");
+		return true;
+	}
 }
 
 
 var battleships = new game();
 battleships.init([
-		{id:"abc"},
-		{id:"123"}
+		"abc",
+		"123"
 	],
 	[
 		{
-			carrier: {head:"e10",tail:"j10"},
+			carrier: {head:"e10",tail:"i10"},
 			battleship: {head:"a3",tail:"a6"},
 			cruiser: {head:"f3",tail:"h3"},
 			submarine: {head:"j6",tail:"j8"},
 			destroyer: {head:"a1",tail:"b1"}
 		},
 		{
-			carrier: {head:"e10",tail:"j10"},
+			carrier: {head:"e10",tail:"i10"},
 			battleship: {head:"a3",tail:"a6"},
 			cruiser: {head:"f3",tail:"h3"},
 			submarine: {head:"j6",tail:"j8"},
@@ -119,6 +128,21 @@ battleships.init([
 		}
 	]
 );
-// console.log(battleships.splitIncrease("c2", "horizontal"));
-// console.log(battleships);
-// console.log(battleships);
+battleships.receiveShot("123","e10");
+battleships.receiveShot("123","f10");
+battleships.receiveShot("123","g10");
+battleships.receiveShot("123","h10");
+battleships.receiveShot("123","i10");
+battleships.receiveShot("123","j10");
+battleships.receiveShot("123","a3");
+battleships.receiveShot("123","a4");
+battleships.receiveShot("123","a5");
+battleships.receiveShot("123","a6");
+battleships.receiveShot("123","f3");
+battleships.receiveShot("123","g3");
+battleships.receiveShot("123","h3");
+battleships.receiveShot("123","j6");
+battleships.receiveShot("123","j7");
+battleships.receiveShot("123","j8");
+battleships.receiveShot("123","a1");
+battleships.receiveShot("123","b1");
