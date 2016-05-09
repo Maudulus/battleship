@@ -1,13 +1,3 @@
-// var app = require('express')();
-// var server = require('http').Server(app);
-// var io = require('socket.io')(server);
-// var clients = [];
-
-// server.listen(80);
-// var $ = require('jquery');
-// var jsdom = require("jsdom");
-
-
 var game = function () {
 	this.turn = true;
 	this.carrier = 5;
@@ -18,13 +8,6 @@ var game = function () {
 	this.horizontal = [1,2,3,4,5,6,7,8,9,10];
 	this.vertical = ["a","b","c","d","e","f","g","h","i","j"];
 	this.grid = {};
-	this.picks = {
-		carrier: {head:"",tail:""},
-		battleship: {head:"",tail:""},
-		cruiser: {head:"",tail:""},
-		submarine: {head:"",tail:""},
-		destroyer: {head:"",tail:""}
-	}	
 	this.players = {
 		player1:{},
 		player2:{}
@@ -63,10 +46,16 @@ var game = function () {
 	this.setBoats = function () {
 		for (var key in this.players){
 			var currPlayer = this.players[key];
-			// console.log(currPlayer.grid);
-			for (boat in currPlayer.picks) {
-				console.log(currPlayer.picks[boat]);
+			for (boats in currPlayer.picks) {
+				var currBoat = currPlayer.picks[boats];
+				var isVertical = this.compareCoords(currBoat);
+				var boatPosition = currBoat.head;
+				while (boatPosition <= currBoat.tail) {
+					currPlayer.grid[boatPosition] = boats;
+					boatPosition = this.splitIncrease(boatPosition,isVertical);
+				}
 			}
+			// console.log(currPlayer.grid)
 		}	
 	}
 	// shotCoords should be in the following format: 
@@ -75,23 +64,24 @@ var game = function () {
 	// 	tail: "c1"
 	// }
 	this.receiveShot = function(playerID,shotCoords) {
-		// if ( this.compareCoords(shotCoords) ) {
-			for (var key in this.players){
-				var currPlayer = this.players[key];
-				if ( !currPlayer.turn ){
+		for (var key in this.players){
+			var currPlayer = this.players[key];
+			if ( !currPlayer.turn ){
 
-				}	
-			}			
-		// }
+			}	
+		}			
 	}
-	// this.compareCoords = function(shotCoords) {
-	// 	var splitCoords = shotCoords.str1.split("");
-	// 	var commonsFound = 0;
-	// 	for (var i = 0; i < splitCoords.length; i++) {
-	// 	    if(shotCoords.str2.indexOf(splitCoords[i]) != -1) commonsFound++;
-	// 	}
-	// 	return commonsFound == 0 ? false : true;
-	// }
+	this.compareCoords = function(boatCoords) {
+		var theHeadNum = boatCoords.head.replace( /^\D+/g, '');
+		return boatCoords.tail.indexOf(theHeadNum) > -1 ?  false : true;
+	}
+	// this function returns increased coordinate position
+	this.splitIncrease = function(coords, isVert){
+		// var splitCoords = coords.split("");
+		var splitCoords = coords.match(/[a-zA-Z]+|[0-9]+/g)
+		return isVert ? splitCoords[0] + this.nextChar(splitCoords[1]) : this.nextChar(splitCoords[0]) + splitCoords[1];
+		// return this.nextChar(splitCoords[0]) + this.nextChar(splitCoords[1]);
+	}
 	this.combineHVGrid = function() {
 		var hz = this.horizontal;	
 		var currGrid = this.grid;
@@ -101,39 +91,34 @@ var game = function () {
 			})			
 		})
 	}
+	this.nextChar = function(c) {
+	    return String.fromCharCode(c.charCodeAt(0) + 1);
+	}
 }
 
 
 var battleships = new game();
-battleships.init([{id:"abc"},{id:"123"}]);
+battleships.init([
+		{id:"abc"},
+		{id:"123"}
+	],
+	[
+		{
+			carrier: {head:"e10",tail:"j10"},
+			battleship: {head:"a3",tail:"a6"},
+			cruiser: {head:"f3",tail:"h3"},
+			submarine: {head:"j6",tail:"j8"},
+			destroyer: {head:"a1",tail:"b1"}
+		},
+		{
+			carrier: {head:"e10",tail:"j10"},
+			battleship: {head:"a3",tail:"a6"},
+			cruiser: {head:"f3",tail:"h3"},
+			submarine: {head:"j6",tail:"j8"},
+			destroyer: {head:"a1",tail:"b1"}
+		}
+	]
+);
+// console.log(battleships.splitIncrease("c2", "horizontal"));
 // console.log(battleships);
-
-// var players = [];
-// var battleships; 
-// io.on('connection', function (socket) {
-// 	clients.push(socket);
-// 	players.push(socket.conn.id);
-// 	if(players.length == 2) {
-// 		var currentPlayers = players.splice(0,2);
-// 		battleships = new game;
-// 		battleships.init(currentPlayers);
-// 		// socket.on('shot', function(data) {
-// 		// 	console.log('go...')
-// 		// 	battleships.receiveShot(data);
-// 		// });		
-// 	} else { 
-// 		// console.log('not enough players...');
-// 	}
-// 	// socket.on('shot', function(data) {
-// 	// 	console.log(battleships);
-// 	// 	console.log(data)
-// 	// });
-// 	// socket.emit('news', { hello: 'world' });
-// 	// socket.on('my other event', function (data) {
-// 	// });
-// });
-
-// app.get('/', function (req, res) {
-//   res.sendFile(__dirname + '/index.html');
-// });
-
+// console.log(battleships);
